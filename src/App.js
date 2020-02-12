@@ -22,7 +22,17 @@ function App() {
   return (
     <Slate editor={editor} value={value} onChange={v => setValue(v)}>
       {/* Add the editable component inside the context. */}
-      <Editable />
+      { /* Define a new handler which prints the key that was pressed. */ }
+      <Editable 
+        onKeyDown={event => {
+          if (event.key === '&') {
+            // Prevent the ampersand character from being inserted.
+            event.preventDefault()
+            // Execute the `insertText` method when the event occurs.
+            editor.insertText("and")
+          }
+        }}
+      />
     </Slate>
   );
 }
