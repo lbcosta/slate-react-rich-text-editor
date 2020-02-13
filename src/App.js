@@ -5,6 +5,11 @@ import { Slate, Editable, withReact } from "slate-react";
 import Code from "./components/Code";
 import Leaf from "./components/Leaf";
 import DefaultElement from "./components/DefaultElement";
+import QuarkLogo from "./assets/img/quark.png";
+
+import GlobalStyle from "./styles/global";
+
+import { Container, EditorWrapper, Logo, LogoWrapper } from "./styles";
 
 const CustomEditor = {
   isBoldActive(editor) {
@@ -123,13 +128,26 @@ function App() {
   };
 
   return (
-    <Slate editor={editor} value={value} onChange={onChange}>
-      <Editable
-        renderElement={renderElement}
-        renderLeaf={renderLeaf}
-        onKeyDown={onKeyDown}
-      />
-    </Slate>
+    <>
+      <Container>
+        <LogoWrapper>
+          <Logo>
+            <img src={QuarkLogo} alt="Logo" />
+            <h1>Quark</h1>
+          </Logo>
+        </LogoWrapper>
+        <EditorWrapper>
+          <Slate editor={editor} value={value} onChange={onChange}>
+            <Editable
+              renderElement={renderElement}
+              renderLeaf={renderLeaf}
+              onKeyDown={onKeyDown}
+            />
+          </Slate>
+        </EditorWrapper>
+      </Container>
+      <GlobalStyle />
+    </>
   );
 }
 
