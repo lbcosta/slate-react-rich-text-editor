@@ -64,12 +64,15 @@ const CustomEditor = {
 
 function App() {
   const editor = useMemo(() => withReact(createEditor()), []);
-  const [value, setValue] = useState([
-    {
-      type: "paragraph",
-      children: [{ text: "A line of text in a paragraph." }]
-    }
-  ]);
+  // Update the initial content to be pulled from Local Storage if it exists.
+  const [value, setValue] = useState(
+    JSON.parse(localStorage.getItem("content")) || [
+      {
+        type: "paragraph",
+        children: [{ text: "A line of text in a paragraph." }]
+      }
+    ]
+  );
 
   const renderElement = useCallback(props => {
     switch (props.element.type) {
@@ -108,8 +111,16 @@ function App() {
     }
   };
 
+  const onChange = value => {
+    setValue(value);
+
+    // Save the value to Local Storage.
+    const content = JSON.stringify(value);
+    localStorage.setItem("content", content);
+  };
+
   return (
-    <Slate editor={editor} value={value} onChange={value => setValue(value)}>
+    <Slate editor={editor} value={value} onChange={onChange}>
       <Editable
         renderElement={renderElement}
         renderLeaf={renderLeaf}
