@@ -14,7 +14,6 @@ const DefaultElement = props => {
   return <p {...props.attributes}>{props.children}</p>;
 };
 
-// Define a React component to render leaves with bold text.
 const Leaf = props => {
   return (
     <span
@@ -24,6 +23,43 @@ const Leaf = props => {
       {props.children}
     </span>
   );
+};
+
+const CustomEditor = {
+  isBoldMarkActive(editor) {
+    const [match] = Editor.nodes(editor, {
+      match: n => n.bold === true,
+      universal: true
+    });
+
+    return !!match;
+  },
+
+  isCodeBlockActive(editor) {
+    const [match] = Editor.nodes(editor, {
+      match: n => n.type === "code"
+    });
+
+    return !!match;
+  },
+
+  toggleBoldMark(editor) {
+    const isActive = CustomEditor.isBoldMarkActive(editor);
+    Transforms.setNodes(
+      editor,
+      { bold: isActive ? null : true },
+      { match: n => Text.isText(n), split: true }
+    );
+  },
+
+  toggleCodeBlock(editor) {
+    const isActive = CustomEditor.isCodeBlockActive(editor);
+    Transforms.setNodes(
+      editor,
+      { type: isActive ? null : "code" },
+      { match: n => Editor.isBlock(editor, n) }
+    );
+  }
 };
 
 function App() {
@@ -44,54 +80,40 @@ function App() {
     }
   }, []);
 
-  // Define a leaf rendering function that is memoized with `useCallback`.
   const renderLeaf = useCallback(props => {
     return <Leaf {...props} />;
   }, []);
+
+  const onKeyDown = event => {
+    if (!event.ctrlKey) {
+      return;
+    }
+
+    switch (event.key) {
+      case ";": {
+        event.preventDefault();
+        CustomEditor.toggleCodeBlock(editor);
+        break;
+      }
+
+      case "b": {
+        event.preventDefault();
+        CustomEditor.toggleBoldMark(editor);
+        break;
+      }
+
+      default: {
+        return;
+      }
+    }
+  };
 
   return (
     <Slate editor={editor} value={value} onChange={value => setValue(value)}>
       <Editable
         renderElement={renderElement}
-        // Pass in the `renderLeaf` function.
         renderLeaf={renderLeaf}
-        onKeyDown={event => {
-          if (!event.ctrlKey) {
-            return;
-          }
-
-          switch (event.key) {
-            case ";": {
-              event.preventDefault();
-              const [match] = Editor.nodes(editor, {
-                match: n => n.type === "code"
-              });
-              Transforms.setNodes(
-                editor,
-                { type: match ? null : "code" },
-                { match: n => Editor.isBlock(editor, n) }
-              );
-              break;
-            }
-
-            case "b": {
-              event.preventDefault();
-              const [match] = Editor.nodes(editor, {
-                match: n => n.bold
-              });
-              Transforms.setNodes(
-                editor,
-                { bold: !match },
-                { match: n => Text.isText(n), split: true }
-              );
-              break;
-            }
-
-            default: {
-              return;
-            }
-          }
-        }}
+        onKeyDown={onKeyDown}
       />
     </Slate>
   );
