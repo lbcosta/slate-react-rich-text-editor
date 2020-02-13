@@ -76,9 +76,12 @@ function App() {
 
             case "b": {
               event.preventDefault();
+              const [match] = Editor.nodes(editor, {
+                match: n => n.bold
+              });
               Transforms.setNodes(
                 editor,
-                { bold: true },
+                { bold: !match },
                 { match: n => Text.isText(n), split: true }
               );
               break;
