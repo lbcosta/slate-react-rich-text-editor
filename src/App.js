@@ -2,31 +2,12 @@ import React, { useMemo, useState, useCallback } from "react";
 import { createEditor, Transforms, Editor, Text } from "slate";
 import { Slate, Editable, withReact } from "slate-react";
 
-const CodeElement = props => {
-  return (
-    <pre {...props.attributes}>
-      <code>{props.children}</code>
-    </pre>
-  );
-};
-
-const DefaultElement = props => {
-  return <p {...props.attributes}>{props.children}</p>;
-};
-
-const Leaf = props => {
-  return (
-    <span
-      {...props.attributes}
-      style={{ fontWeight: props.leaf.bold ? "bold" : "normal" }}
-    >
-      {props.children}
-    </span>
-  );
-};
+import Code from "./components/Code";
+import Leaf from "./components/Leaf";
+import DefaultElement from "./components/DefaultElement";
 
 const CustomEditor = {
-  isBoldMarkActive(editor) {
+  isBoldActive(editor) {
     const [match] = Editor.nodes(editor, {
       match: n => n.bold === true,
       universal: true
@@ -35,7 +16,16 @@ const CustomEditor = {
     return !!match;
   },
 
-  isCodeBlockActive(editor) {
+  isItalicActive(editor) {
+    const [match] = Editor.nodes(editor, {
+      match: n => n.italic === true,
+      universal: true
+    });
+
+    return !!match;
+  },
+
+  isCodeActive(editor) {
     const [match] = Editor.nodes(editor, {
       match: n => n.type === "code"
     });
@@ -43,8 +33,8 @@ const CustomEditor = {
     return !!match;
   },
 
-  toggleBoldMark(editor) {
-    const isActive = CustomEditor.isBoldMarkActive(editor);
+  toggleBold(editor) {
+    const isActive = CustomEditor.isBoldActive(editor);
     Transforms.setNodes(
       editor,
       { bold: isActive ? null : true },
@@ -52,8 +42,17 @@ const CustomEditor = {
     );
   },
 
-  toggleCodeBlock(editor) {
-    const isActive = CustomEditor.isCodeBlockActive(editor);
+  toggleItalic(editor) {
+    const isActive = CustomEditor.isItalicActive(editor);
+    Transforms.setNodes(
+      editor,
+      { italic: isActive ? null : true },
+      { match: n => Text.isText(n), split: true }
+    );
+  },
+
+  toggleCode(editor) {
+    const isActive = CustomEditor.isCodeActive(editor);
     Transforms.setNodes(
       editor,
       { type: isActive ? null : "code" },
@@ -64,7 +63,6 @@ const CustomEditor = {
 
 function App() {
   const editor = useMemo(() => withReact(createEditor()), []);
-  // Update the initial content to be pulled from Local Storage if it exists.
   const [value, setValue] = useState(
     JSON.parse(localStorage.getItem("content")) || [
       {
@@ -77,7 +75,7 @@ function App() {
   const renderElement = useCallback(props => {
     switch (props.element.type) {
       case "code":
-        return <CodeElement {...props} />;
+        return <Code {...props} />;
       default:
         return <DefaultElement {...props} />;
     }
@@ -95,13 +93,19 @@ function App() {
     switch (event.key) {
       case ";": {
         event.preventDefault();
-        CustomEditor.toggleCodeBlock(editor);
+        CustomEditor.toggleCode(editor);
         break;
       }
 
       case "b": {
         event.preventDefault();
-        CustomEditor.toggleBoldMark(editor);
+        CustomEditor.toggleBold(editor);
+        break;
+      }
+
+      case "i": {
+        event.preventDefault();
+        CustomEditor.toggleItalic(editor);
         break;
       }
 
@@ -114,7 +118,6 @@ function App() {
   const onChange = value => {
     setValue(value);
 
-    // Save the value to Local Storage.
     const content = JSON.stringify(value);
     localStorage.setItem("content", content);
   };
