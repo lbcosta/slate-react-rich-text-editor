@@ -1,9 +1,5 @@
 import React, { useMemo, useState, useCallback } from "react";
-
-// Import the Slate editor factory.
-import { createEditor, Transforms, Editor } from "slate";
-
-// Import the Slate components and React plugin.
+import { createEditor, Transforms, Editor, Text } from "slate";
 import { Slate, Editable, withReact } from "slate-react";
 
 const CodeElement = props => {
@@ -18,11 +14,20 @@ const DefaultElement = props => {
   return <p {...props.attributes}>{props.children}</p>;
 };
 
-function App() {
-  // Create a Slate editor object that wont't change across renders.
-  const editor = useMemo(() => withReact(createEditor()), []);
+// Define a React component to render leaves with bold text.
+const Leaf = props => {
+  return (
+    <span
+      {...props.attributes}
+      style={{ fontWeight: props.leaf.bold ? "bold" : "normal" }}
+    >
+      {props.children}
+    </span>
+  );
+};
 
-  // Keep track of state for the value of the editor.
+function App() {
+  const editor = useMemo(() => withReact(createEditor()), []);
   const [value, setValue] = useState([
     {
       type: "paragraph",
@@ -30,8 +35,6 @@ function App() {
     }
   ]);
 
-  // Define a rendering function based on the element passed to `props`. We use
-  // `useCallback` here to memoize the function for subsequent renders.
   const renderElement = useCallback(props => {
     switch (props.element.type) {
       case "code":
@@ -41,27 +44,49 @@ function App() {
     }
   }, []);
 
-  // Render the Slate context.
+  // Define a leaf rendering function that is memoized with `useCallback`.
+  const renderLeaf = useCallback(props => {
+    return <Leaf {...props} />;
+  }, []);
+
   return (
-    <Slate editor={editor} value={value} onChange={v => setValue(v)}>
-      {/* Add the editable component inside the context. */}
-      {/* Define a new handler which prints the key that was pressed. */}
-      {/* Pass in the 'renderElement' function */}
+    <Slate editor={editor} value={value} onChange={value => setValue(value)}>
       <Editable
         renderElement={renderElement}
+        // Pass in the `renderLeaf` function.
+        renderLeaf={renderLeaf}
         onKeyDown={event => {
-          if (event.key === ";" && event.ctrlKey) {
-            event.preventDefault();
-            // Determine whether any of the currently selected blocks are code blocks.
-            const [match] = Editor.nodes(editor, {
-              match: n => n.type === "code"
-            });
-            // Toggle the block type depending on whether there's already a match.
-            Transforms.setNodes(
-              editor,
-              { type: match ? "paragraph" : "code" },
-              { match: n => Editor.isBlock(editor, n) }
-            );
+          if (!event.ctrlKey) {
+            return;
+          }
+
+          switch (event.key) {
+            case ";": {
+              event.preventDefault();
+              const [match] = Editor.nodes(editor, {
+                match: n => n.type === "code"
+              });
+              Transforms.setNodes(
+                editor,
+                { type: match ? null : "code" },
+                { match: n => Editor.isBlock(editor, n) }
+              );
+              break;
+            }
+
+            case "b": {
+              event.preventDefault();
+              Transforms.setNodes(
+                editor,
+                { bold: true },
+                { match: n => Text.isText(n), split: true }
+              );
+              break;
+            }
+
+            default: {
+              return;
+            }
           }
         }}
       />
