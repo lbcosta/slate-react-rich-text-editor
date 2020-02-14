@@ -12,6 +12,10 @@ export const EditorWrapper = styled.div`
   height: 250px;
 
   margin: 0 auto 0;
+`;
+
+export const TextWrapper = styled.div`
+  height: 250px;
   padding: 8px;
 
   color: white;

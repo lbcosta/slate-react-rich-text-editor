@@ -4,12 +4,19 @@ import { Slate, Editable, withReact } from "slate-react";
 
 import Code from "./components/Code";
 import Leaf from "./components/Leaf";
+import ToolBar from "./components/ToolBar";
 import DefaultElement from "./components/DefaultElement";
 import QuarkLogo from "./assets/img/quark.png";
 
 import GlobalStyle from "./styles/global";
 
-import { Container, EditorWrapper, Logo, LogoWrapper } from "./styles";
+import {
+  Container,
+  EditorWrapper,
+  TextWrapper,
+  Logo,
+  LogoWrapper
+} from "./styles";
 
 const CustomEditor = {
   isBoldActive(editor) {
@@ -137,13 +144,20 @@ function App() {
           </Logo>
         </LogoWrapper>
         <EditorWrapper>
-          <Slate editor={editor} value={value} onChange={onChange}>
-            <Editable
-              renderElement={renderElement}
-              renderLeaf={renderLeaf}
-              onKeyDown={onKeyDown}
-            />
-          </Slate>
+          <ToolBar
+            toggleBold={() => CustomEditor.toggleBold(editor)}
+            toggleItalic={() => CustomEditor.toggleItalic(editor)}
+            toggleCode={() => CustomEditor.toggleCode(editor)}
+          />
+          <TextWrapper>
+            <Slate editor={editor} value={value} onChange={onChange}>
+              <Editable
+                renderElement={renderElement}
+                renderLeaf={renderLeaf}
+                onKeyDown={onKeyDown}
+              />
+            </Slate>
+          </TextWrapper>
         </EditorWrapper>
       </Container>
       <GlobalStyle />
